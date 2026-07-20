@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Custom background mesh glow effect */
+.glow-mesh {
+  background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+              radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 40%),
+              #070b19;
+}

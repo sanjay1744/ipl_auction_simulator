@@ -1,0 +1,253 @@
+<div class="min-h-screen glow-mesh text-slate-100 flex flex-col font-sans">
+  <!-- 1. Header Navigation -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-900/60 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center font-bold text-white shadow-lg shadow-rose-500/20">
+        IPL
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+          IPL Auction Game
+        </h1>
+        <p class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Live Simulator</p>
+      </div>
+    </div>
+
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
+      <a href="#" class="hover:text-amber-500 transition-colors text-slate-200">Dashboard</a>
+      <a href="#" class="hover:text-amber-500 transition-colors">Public Auctions</a>
+      <a href="#" class="hover:text-amber-500 transition-colors">Master Players</a>
+      <a href="#" class="hover:text-amber-500 transition-colors">Leaderboard</a>
+    </nav>
+
+    <div class="flex items-center gap-4">
+      <button class="px-4 py-2 text-xs font-semibold text-slate-900 bg-amber-400 rounded-lg hover:bg-amber-300 transition-all shadow-md shadow-amber-400/10">
+        Host Auction
+      </button>
+      <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center cursor-pointer hover:border-slate-500">
+        <span class="material-icons text-sm text-slate-400">person</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-12 flex flex-col gap-16">
+    <!-- 2. Hero Section -->
+    <section class="text-center flex flex-col items-center gap-6 max-w-3xl mx-auto">
+      <span class="px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-xs font-semibold text-indigo-400 tracking-wide uppercase">
+        ⚡ Real-time Multiplayer Simulation
+      </span>
+      <h2 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
+        Build the Ultimate
+        <span class="bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-500 bg-clip-text text-transparent">
+          IPL Squad
+        </span>
+      </h2>
+      <p class="text-slate-400 text-lg leading-relaxed">
+        Create private or public rooms, invite your friends, place bids in real-time, and manage your team budget to draft your dream squad under classic IPL auction rules.
+      </p>
+
+      <!-- Fast Action Cards -->
+      <div class="w-full grid md:grid-cols-2 gap-6 mt-8">
+        <!-- Create Room -->
+        <div class="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm text-left hover:border-amber-500/50 hover:bg-slate-900/60 transition-all group shadow-xl">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 mb-4 group-hover:scale-110 transition-transform">
+            <span class="material-icons">add_box</span>
+          </div>
+          <h3 class="text-lg font-bold mb-1">Create Auction Room</h3>
+          <p class="text-xs text-slate-400 mb-4">Set budget, custom squad limits, and configure teams to host a draft room.</p>
+          <button class="w-full py-2.5 rounded-lg text-xs font-semibold text-slate-900 bg-amber-400 hover:bg-amber-300 transition-colors">
+            Setup Room
+          </button>
+        </div>
+
+        <!-- Join Room -->
+        <div class="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm text-left hover:border-indigo-500/50 hover:bg-slate-900/60 transition-all group shadow-xl">
+          <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500 mb-4 group-hover:scale-110 transition-transform">
+            <span class="material-icons">vpn_key</span>
+          </div>
+          <h3 class="text-lg font-bold mb-1">Join Room</h3>
+          <p class="text-xs text-slate-400 mb-4">Enter a code or browse public rooms to bid against online users.</p>
+          <div class="flex gap-2">
+            <input 
+              type="text" 
+              placeholder="Room Code" 
+              class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs focus:outline-none focus:border-indigo-500 transition-colors text-slate-200"
+            />
+            <button class="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors">
+              Join
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Players Section -->
+    <section class="flex flex-col gap-8">
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+        <div class="flex items-center gap-3">
+          <h3 class="text-2xl font-bold tracking-tight">Master Player Pool</h3>
+          @if (players().length > 0) {
+            <span class="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-400 font-semibold">
+              {{ players().length }}
+            </span>
+          }
+        </div>
+        <div class="flex gap-2">
+          <button (click)="retryFetch()" class="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 transition-colors" title="Reload Database">
+            <span class="material-icons text-sm block">refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State (Skeleton Loaders) -->
+      @if (isLoading()) {
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+            <div class="p-6 rounded-2xl bg-slate-900/20 border border-slate-900 animate-pulse flex flex-col gap-4">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-full bg-slate-800"></div>
+                <div class="flex-1 flex flex-col gap-2">
+                  <div class="h-4 bg-slate-800 rounded w-2/3"></div>
+                  <div class="h-3 bg-slate-800 rounded w-1/2"></div>
+                </div>
+              </div>
+              <div class="h-3 bg-slate-800 rounded w-full"></div>
+              <div class="h-3 bg-slate-800 rounded w-4/5"></div>
+              <div class="flex justify-between items-center mt-2 border-t border-slate-800 pt-4">
+                <div class="h-4 bg-slate-800 rounded w-1/3"></div>
+                <div class="h-6 bg-slate-800 rounded w-1/4"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Error State -->
+      @if (fetchError()) {
+        <div class="p-6 rounded-2xl bg-amber-950/20 border border-amber-900/50 flex flex-col items-center text-center gap-4 max-w-2xl mx-auto shadow-lg shadow-amber-950/5">
+          <div class="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
+            <span class="material-icons">wifi_off</span>
+          </div>
+          <div>
+            <h4 class="text-base font-bold text-amber-400 mb-1">Database API Offline</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              {{ fetchError() }}
+            </p>
+          </div>
+          <button (click)="retryFetch()" class="px-4 py-2 text-xs font-semibold text-slate-900 bg-amber-400 rounded-lg hover:bg-amber-300 transition-colors">
+            Retry Connection
+          </button>
+        </div>
+      }
+
+      <!-- Success State - Player Grid -->
+      @if (!isLoading() && !fetchError() && players().length > 0) {
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (player of players(); track player.id) {
+            <div class="p-6 rounded-2xl bg-slate-900/40 border border-slate-850 hover:border-slate-700/80 hover:bg-slate-900/60 transition-all flex flex-col gap-4 shadow-md group">
+              <!-- Player Header Info -->
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-4">
+                  <!-- Avatar with ImageKit CDN and fallback -->
+                  <div class="relative w-14 h-14">
+                    @if (player.imageUrl) {
+                      <img 
+                        [src]="getImageUrl(player.imageUrl)" 
+                        [alt]="player.name" 
+                        (error)="onImageError($event)"
+                        class="w-14 h-14 rounded-full object-cover border border-slate-700/50 group-hover:scale-105 transition-transform"
+                      />
+                    }
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-slate-800 to-slate-700 items-center justify-center text-xl font-bold border border-slate-700/50 text-indigo-400 group-hover:scale-105 transition-transform"
+                         [style.display]="player.imageUrl ? 'none' : 'flex'">
+                      {{ player.name.charAt(0) }}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-base text-slate-100 group-hover:text-amber-400 transition-colors">
+                      {{ player.name }}
+                    </h4>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <span class="text-xs text-slate-400">{{ player.country }}</span>
+                      <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                      <span class="text-xs text-slate-400">{{ player.age }} yrs</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Rating -->
+                <div class="px-2 py-1 rounded-lg bg-indigo-950/40 border border-indigo-900/40 text-xs font-bold text-indigo-400">
+                  ⭐ {{ player.rating }}
+                </div>
+              </div>
+
+              <!-- Badges and Role style -->
+              <div class="flex flex-wrap gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider" 
+                  [class]="player.role === 'Batsman' ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' :
+                           player.role === 'Bowler' ? 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400' :
+                           player.role === 'AllRounder' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' :
+                           'bg-purple-500/10 border border-purple-500/20 text-purple-400'">
+                  {{ player.role }}
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-850 border border-slate-750 text-slate-400">
+                  {{ player.category }}
+                </span>
+              </div>
+
+              <!-- Stats Block -->
+              <div class="grid grid-cols-2 gap-2 bg-slate-950/30 rounded-xl p-3 border border-slate-900">
+                @if (player.role === 'Batsman' || player.role === 'WicketKeeper' || player.role === 'AllRounder') {
+                  <div class="flex flex-col">
+                    <span class="text-[10px] uppercase text-slate-500 font-bold">IPL Runs</span>
+                    <span class="text-sm font-semibold text-slate-200">{{ player.iplRuns || '0' }}</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-[10px] uppercase text-slate-500 font-bold">Strike Rate</span>
+                    <span class="text-sm font-semibold text-slate-200">{{ player.strikeRate || '0.0' }}</span>
+                  </div>
+                }
+                @if (player.role === 'Bowler') {
+                  <div class="flex flex-col">
+                    <span class="text-[10px] uppercase text-slate-500 font-bold">IPL Wickets</span>
+                    <span class="text-sm font-semibold text-slate-200">{{ player.iplWickets || '0' }}</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-[10px] uppercase text-slate-500 font-bold">Economy</span>
+                    <span class="text-sm font-semibold text-slate-200">{{ player.economy || '0.0' }}</span>
+                  </div>
+                }
+                @if (player.role === 'AllRounder') {
+                  <div class="flex flex-col mt-2 pt-2 border-t border-slate-900/60 col-span-2">
+                    <div class="flex justify-between text-xs">
+                      <span class="text-slate-400">Wickets: <strong class="text-slate-200">{{ player.iplWickets }}</strong></span>
+                      <span class="text-slate-400">Econ: <strong class="text-slate-200">{{ player.economy }}</strong></span>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Price section -->
+              <div class="flex justify-between items-center mt-auto border-t border-slate-850 pt-4">
+                <div class="flex flex-col">
+                  <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Base Price</span>
+                  <span class="text-base font-bold text-amber-400">{{ formatPrice(player.basePrice) }}</span>
+                </div>
+                <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 bg-slate-850 border border-slate-750 hover:bg-indigo-600 hover:border-indigo-500 hover:text-white transition-all shadow-sm">
+                  View Profile
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-slate-850 px-6 py-6 bg-slate-950/20 text-center text-xs text-slate-500">
+    <p>© 2026 IPL Auction Game. Built with ASP.NET Core 9, Angular 20, SignalR, Neon Postgres & ImageKit.</p>
+  </footer>
+</div>
+
+<router-outlet></router-outlet>

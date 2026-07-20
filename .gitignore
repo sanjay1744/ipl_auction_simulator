@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+out-tsc/
+tmp/
+bin/
+**/bin/
+obj/
+**/obj/
+
+# App Configuration & Credentials
+backend/appsettings.json
+backend/appsettings.Development.json
+
+# Databases & local data
+*.db
+*.sqlite
+*.sqlite3
+backend/ipl_auction.db
+
+# Environment variables & secrets
+.env
+*.env
+**/.env
+
+# Angular cache & IDEs
+.angular/
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Logs & temp files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files
+.DS_Store
+Thumbs.db
