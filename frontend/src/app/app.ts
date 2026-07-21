@@ -1,26 +1,48 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ApiService } from './core/services/api.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true,
+  imports: [RouterOutlet, CommonModule, FormsModule],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App implements OnInit {
-  private readonly apiService = inject(ApiService);
-  
+  public readonly apiService = inject(ApiService);
+  private readonly router = inject(Router);
+
   protected readonly title = signal('IPL Auction Game');
   protected readonly players = signal<any[]>([]);
+  protected readonly publicRooms = signal<any[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly fetchError = signal<string | null>(null);
 
+  public showSetupModal = signal(false);
+  public isHomePage = signal(true);
+
+  // Setup room form state
+  public roomName = '';
+  public budget = 1000000000; // 100 Crores
+  public timer = 30;
+  public joinCode = '';
+  public isCreating = signal(false);
+
   ngOnInit(): void {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.isHomePage.set(event.url === '/' || event.url === '');
+      }
+    });
+
     this.fetchPlayers();
+    this.fetchPublicRooms();
   }
 
-  private fetchPlayers(): void {
+  protected fetchPlayers(): void {
     this.isLoading.set(true);
     this.fetchError.set(null);
 
@@ -39,8 +61,67 @@ export class App implements OnInit {
     });
   }
 
+  protected fetchPublicRooms(): void {
+    this.apiService.get<any[]>('rooms/public').subscribe({
+      next: (data) => {
+        this.publicRooms.set(data);
+      },
+      error: () => {
+        // Ignore error if not initialized
+      }
+    });
+  }
+
+  protected openCreateRoomModal(): void {
+    if (!this.apiService.currentUser()) {
+      this.router.navigate(['/auth']);
+      return;
+    }
+    this.showSetupModal.set(true);
+  }
+
+  protected submitCreateRoom(): void {
+    if (!this.roomName.trim()) return;
+    this.isCreating.set(true);
+
+    this.apiService.post<any>('rooms', {
+      roomName: this.roomName.trim(),
+      budget: this.budget,
+      timer: this.timer
+    }).subscribe({
+      next: (room) => {
+        this.isCreating.set(false);
+        this.showSetupModal.set(false);
+        this.router.navigate(['/lobby', room.roomCode]);
+      },
+      error: (err) => {
+        this.isCreating.set(false);
+        alert(err.error?.message || 'Failed to create room.');
+      }
+    });
+  }
+
+  protected submitJoinRoom(): void {
+    if (!this.joinCode.trim()) return;
+    if (!this.apiService.currentUser()) {
+      this.router.navigate(['/auth'], { queryParams: { returnUrl: `/lobby/${this.joinCode.trim().toUpperCase()}` } });
+      return;
+    }
+    this.router.navigate(['/lobby', this.joinCode.trim().toUpperCase()]);
+  }
+
+  protected navigateToAuth(): void {
+    this.router.navigate(['/auth']);
+  }
+
+  protected logout(): void {
+    this.apiService.clearSession();
+    this.router.navigate(['/']);
+  }
+
   protected retryFetch(): void {
     this.fetchPlayers();
+    this.fetchPublicRooms();
   }
 
   protected getImageUrl(path: string | null): string {
@@ -59,9 +140,6 @@ export class App implements OnInit {
     }
   }
 
-  /**
-   * Helper to format numbers into standard Indian IPL denominations (Crores/Lakhs)
-   */
   protected formatPrice(price: number): string {
     if (price >= 10000000) {
       return `₹${(price / 10000000).toFixed(2)} Crore`;

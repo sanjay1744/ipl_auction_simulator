@@ -21,6 +21,8 @@ CREATE TABLE rooms (
     budget DECIMAL(15, 2) NOT NULL DEFAULT 1000000000.00, -- 100 Crores
     timer INT NOT NULL DEFAULT 30, -- 30 seconds
     status VARCHAR(50) NOT NULL DEFAULT 'Lobby', -- Lobby, Active, Paused, Completed
+    current_player_id UUID REFERENCES players(id) ON DELETE SET NULL,
+    timer_ends_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 

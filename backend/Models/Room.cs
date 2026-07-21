@@ -13,10 +13,13 @@ namespace IplAuction.Api.Models
         public decimal Budget { get; set; } = 1000000000.00m; // 100 Crores
         public int Timer { get; set; } = 30; // 30 seconds
         public string Status { get; set; } = "Lobby";
+        public Guid? CurrentPlayerId { get; set; }
+        public DateTime? TimerEndsAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
         public User Host { get; set; } = null!;
+        public Player? CurrentPlayer { get; set; }
         public ICollection<RoomParticipant> Participants { get; set; } = new List<RoomParticipant>();
         public ICollection<Team> Teams { get; set; } = new List<Team>();
         public ICollection<Bid> Bids { get; set; } = new List<Bid>();
