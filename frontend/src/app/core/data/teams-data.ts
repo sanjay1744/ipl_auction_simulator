@@ -22,6 +22,15 @@ export interface TeamFranchise {
   squad: TeamPlayer[];
 }
 
+const APPWRITE_ENDPOINT = "https://sgp.cloud.appwrite.io/v1";
+const APPWRITE_PROJECT_ID = "6a5df66d001f02c95596";
+const APPWRITE_BUCKET_ID = "6a5df6bf0020c2218f61";
+
+export function getAppwriteTeamLogoUrl(code: string): string {
+  const fileId = `team-logo-${code.toLowerCase()}`;
+  return `${APPWRITE_ENDPOINT}/storage/buckets/${APPWRITE_BUCKET_ID}/files/${fileId}/view?project=${APPWRITE_PROJECT_ID}`;
+}
+
 export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
   {
     "code": "CSK",
@@ -31,7 +40,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "MA Chidambaram Stadium, Chennai",
     "primaryColor": "#F9CD05",
     "accentColor": "#0081E9",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/csk.png",
+    "logo": getAppwriteTeamLogoUrl("csk"),
     "squad": [
       {
         "name": "Ruturaj Gaikwad",
@@ -318,7 +327,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "Arun Jaitley Stadium, Delhi",
     "primaryColor": "#0078FF",
     "accentColor": "#EF4123",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/dc.png",
+    "logo": getAppwriteTeamLogoUrl("dc"),
     "squad": [
       {
         "name": "KL Rahul",
@@ -594,7 +603,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "Narendra Modi Stadium, Ahmedabad",
     "primaryColor": "#00C49F",
     "accentColor": "#E5B350",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/gt.png",
+    "logo": getAppwriteTeamLogoUrl("gt"),
     "squad": [
       {
         "name": "Kumar Kushagra",
@@ -870,7 +879,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "Eden Gardens, Kolkata",
     "primaryColor": "#A855F7",
     "accentColor": "#3A225D",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/kkr.png",
+    "logo": getAppwriteTeamLogoUrl("kkr"),
     "squad": [
       {
         "name": "Tejasvi Singh",
@@ -1146,7 +1155,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "BRSABV Ekana Cricket Stadium, Lucknow",
     "primaryColor": "#00A3E0",
     "accentColor": "#E30613",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/lsg.png",
+    "logo": getAppwriteTeamLogoUrl("lsg"),
     "squad": [
       {
         "name": "Rishabh Pant",
@@ -1433,7 +1442,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "Wankhede Stadium, Mumbai",
     "primaryColor": "#0066FF",
     "accentColor": "#D4AF37",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/mi.png",
+    "logo": getAppwriteTeamLogoUrl("mi"),
     "squad": [
       {
         "name": "Rohit Sharma",
@@ -1720,7 +1729,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "Maharaja Yadavindra Singh Stadium, Mullanpur",
     "primaryColor": "#DD1D25",
     "accentColor": "#A7A9AC",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/pbks.png",
+    "logo": getAppwriteTeamLogoUrl("pbks"),
     "squad": [
       {
         "name": "Prabhsimran Singh",
@@ -2007,7 +2016,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "M. Chinnaswamy Stadium, Bengaluru",
     "primaryColor": "#EC1C24",
     "accentColor": "#E2B714",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/rcb.png",
+    "logo": getAppwriteTeamLogoUrl("rcb"),
     "squad": [
       {
         "name": "Jitesh Sharma",
@@ -2283,7 +2292,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "Sawai Mansingh Stadium, Jaipur",
     "primaryColor": "#EA1A85",
     "accentColor": "#254AA5",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/rr.png",
+    "logo": getAppwriteTeamLogoUrl("rr"),
     "squad": [
       {
         "name": "Dhruv Jurel",
@@ -2548,7 +2557,7 @@ export const IPL_FRANCHISES_DATA: TeamFranchise[] = [
     "homeGround": "Rajiv Gandhi International Stadium, Hyderabad",
     "primaryColor": "#FF6600",
     "accentColor": "#000000",
-    "logo": "https://ik.imagekit.io/vmoilpdg4/ipl_teams/srh.png",
+    "logo": getAppwriteTeamLogoUrl("srh"),
     "squad": [
       {
         "name": "Heinrich Klaasen",

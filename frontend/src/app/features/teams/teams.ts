@@ -1,5 +1,6 @@
-import { Component, signal, OnInit, inject } from '@angular/core';
+import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { IPL_FRANCHISES_DATA, TeamFranchise, TeamPlayer } from '../../core/data/teams-data';
 import { ApiService } from '../../core/services/api.service';
@@ -7,7 +8,7 @@ import { ApiService } from '../../core/services/api.service';
 @Component({
   selector: 'app-teams',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   template: `
     <div class="min-h-screen bg-[#07090E] text-slate-100 font-sans flex flex-col selection:bg-amber-500 selection:text-black">
       
@@ -19,16 +20,23 @@ import { ApiService } from '../../core/services/api.service';
           <img src="Mode=Dark,_Version=A.webp" alt="TATA IPL Logo" class="h-10 md:h-12 w-auto object-contain drop-shadow-md" />
         </div>
 
-        <!-- Center: IPL 2026 FRANCHISES Title / Nav Links -->
-        <h1 class="text-xl md:text-2xl font-black tracking-widest uppercase text-white font-mono">
-          IPL 2026 <span class="text-amber-400">FRANCHISES</span>
-        </h1>
+        <!-- Center: Nav Links & Title -->
+        <div class="flex items-center gap-8">
+          <nav class="hidden md:flex items-center gap-6 text-sm font-bold text-white">
+            <a (click)="navigateToHome()" class="hover:text-amber-300 transition-colors py-1.5 text-slate-100 tracking-wide cursor-pointer">
+              Home
+            </a>
+            <a (click)="showAllFranchises()" [class]="showAllGrid() ? 'text-white border-b-2 border-white font-extrabold' : 'text-slate-100 hover:text-amber-300 hover:border-b-2 hover:border-amber-300'" class="transition-colors py-1.5 tracking-wide cursor-pointer flex items-center gap-1">
+              <span>Teams</span>
+            </a>
+          </nav>
+        </div>
 
         <!-- Right Action: All Franchises Toggle -->
         <div class="flex items-center gap-3">
           <button 
             (click)="toggleViewMode()" 
-            class="px-4 py-2 rounded-lg border border-amber-400/50 bg-amber-400 text-slate-950 text-xs font-black tracking-wider hover:bg-amber-300 transition-all flex items-center gap-2 shadow-lg shadow-amber-400/20">
+            class="px-4 py-2 rounded-lg border border-amber-400/50 bg-amber-400 text-slate-950 text-xs font-black tracking-wider hover:bg-amber-300 transition-all flex items-center gap-2 shadow-lg shadow-amber-400/20 cursor-pointer">
             <span>{{ showAllGrid() ? 'SELECT TEAM' : 'ALL FRANCHISES' }}</span>
             <span class="material-icons text-sm">grid_view</span>
           </button>
@@ -39,72 +47,167 @@ import { ApiService } from '../../core/services/api.service';
       <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col gap-8">
         
         <!-- Quick Franchise Selector Chips -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-800/60">
+        <div class="flex items-center gap-2.5 overflow-x-auto pb-3 scrollbar-none border-b border-slate-800/60">
+          <button 
+            (click)="showAllFranchises()"
+            [style.background-color]="showAllGrid() ? '#F59E0B' : '#0E121B'"
+            [style.border-color]="'#F59E0B'"
+            [style.color]="showAllGrid() ? '#000000' : '#E2E8F0'"
+            class="px-4 py-2.5 rounded-xl border text-xs font-black tracking-wide uppercase transition-all whitespace-nowrap shadow-md flex items-center gap-2 cursor-pointer hover:scale-105">
+            <span class="material-icons text-sm">grid_view</span>
+            <span>ALL FRANCHISES</span>
+          </button>
           <button 
             *ngFor="let team of franchises"
             (click)="selectTeam(team.code)"
             [style.background-color]="selectedTeamCode() === team.code && !showAllGrid() ? team.primaryColor : '#0E121B'"
             [style.border-color]="team.primaryColor"
             [style.color]="selectedTeamCode() === team.code && !showAllGrid() ? '#000000' : '#E2E8F0'"
-            class="px-4 py-2 rounded-xl border text-xs font-black tracking-wide uppercase transition-all whitespace-nowrap shadow-md">
+            class="px-4 py-2 rounded-xl border text-xs font-black tracking-wide uppercase transition-all whitespace-nowrap shadow-md cursor-pointer flex items-center gap-2 hover:scale-105">
+            <img [src]="team.logo" [alt]="team.code" class="w-5 h-5 object-contain rounded-md" />
             <span>{{ team.code }}</span>
           </button>
         </div>
 
-        <!-- VIEW A: ALL FRANCHISES GRID (Dynamic Franchise Team Colors matching exact reference images) -->
-        <section *ngIf="showAllGrid()" class="flex flex-col gap-6 animate-fadeIn">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-bold tracking-tight text-slate-200">
-              Select an IPL 2026 Franchise
-            </h2>
-            <span class="text-xs text-slate-400 font-medium">10 Official Franchises</span>
+        <!-- VIEW A: ALL FRANCHISES GRID -->
+        <section *ngIf="showAllGrid()" class="flex flex-col gap-8 animate-fadeIn">
+          
+          <!-- Header Title & Live Search Bar -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900/90 via-slate-900/70 to-slate-950/90 p-6 rounded-3xl border border-slate-800/80 shadow-2xl backdrop-blur-md">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="text-xs font-black text-amber-400 uppercase tracking-widest">IPL 2026 OFFICIAL TEAMS</span>
+              </div>
+              <h2 class="text-2xl md:text-3xl font-black tracking-tight text-white">
+                Official IPL Franchises
+              </h2>
+              <p class="text-xs text-slate-400 mt-1">
+                Explore squad statistics, star players, team leadership & stadium home grounds
+              </p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="relative w-full md:w-80">
+              <span class="material-icons absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+              <input 
+                type="text" 
+                [(ngModel)]="searchQuery" 
+                placeholder="Search team, captain, city..." 
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- 10 Franchise Cards Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             <div 
-              *ngFor="let team of franchises"
+              *ngFor="let team of filteredFranchises()"
               (click)="selectTeam(team.code)"
-              class="group relative bg-[#0A0D15] border-2 rounded-2xl p-6 transition-all cursor-pointer shadow-2xl flex flex-col justify-between gap-6 overflow-hidden hover:scale-[1.02]"
-              [style.border-color]="team.primaryColor"
-              [style.box-shadow]="'0 0 20px ' + team.primaryColor + '25'">
+              class="group relative bg-[#080C16] border border-slate-800/90 hover:border-amber-400/50 rounded-3xl transition-all duration-500 cursor-pointer shadow-2xl flex flex-col justify-between overflow-hidden hover:-translate-y-2 hover:shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
               
-              <!-- Top Row: Logo & Team Name -->
-              <div class="flex flex-col items-center text-center gap-3">
-                <div class="w-20 h-20 rounded-2xl bg-slate-950/90 border border-slate-800 flex items-center justify-center p-3 shadow-md group-hover:scale-105 transition-transform">
-                  <div class="font-black text-2xl tracking-tighter" [style.color]="team.primaryColor">
-                    {{ team.code }}
+              <!-- Aesthetic Shaddy Watermark Logo Background Layer -->
+              <div class="absolute inset-0 pointer-events-none select-none overflow-hidden z-0 rounded-3xl">
+                <img 
+                  [src]="team.logo" 
+                  [alt]="team.name" 
+                  class="absolute -right-8 -bottom-8 w-64 h-64 object-cover rounded-full opacity-20 group-hover:opacity-35 group-hover:scale-115 group-hover:-rotate-6 transition-all duration-700 ease-out filter blur-[1px] brightness-125 contrast-125 saturate-150" 
+                />
+                <!-- Gradient overlay to keep text crisp and readable -->
+                <div class="absolute inset-0 bg-gradient-to-t from-[#070912]/95 via-[#080C16]/80 to-transparent"></div>
+              </div>
+
+              <!-- Hero Header Banner with Team Primary Color Gradient -->
+              <div 
+                class="h-28 w-full relative p-4 flex items-start justify-between overflow-hidden z-10"
+                [style.background]="'linear-gradient(135deg, ' + team.primaryColor + 'DD 0%, ' + team.accentColor + 'AA 100%)'">
+                
+                <!-- Ambient Overlay -->
+                <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#080C16]/90"></div>
+                
+                <!-- Code Badge -->
+                <span class="relative z-10 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest bg-slate-950/85 text-white border border-white/20 shadow-md">
+                  {{ team.code }}
+                </span>
+
+                <!-- Squad Players Count Pill -->
+                <span class="relative z-10 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-slate-950/85 text-amber-400 border border-amber-400/30 flex items-center gap-1 shadow-md">
+                  <span class="material-icons text-xs">groups</span>
+                  <span>{{ team.squad.length }} Players</span>
+                </span>
+              </div>
+
+              <!-- Floating Hero Logo Emblem Badge -->
+              <div class="relative -mt-14 px-6 flex justify-center z-10">
+                <div 
+                  class="w-24 h-24 rounded-2xl bg-[#080B14] p-2 border-2 shadow-2xl group-hover:scale-110 transition-transform duration-300 flex items-center justify-center overflow-hidden"
+                  [style.border-color]="team.primaryColor"
+                  [style.box-shadow]="'0 8px 25px ' + team.primaryColor + '40'">
+                  <img 
+                    [src]="team.logo" 
+                    [alt]="team.name" 
+                    (error)="onLogoError($event, team.code)"
+                    class="w-full h-full object-cover rounded-xl shadow-sm"
+                  />
+                </div>
+              </div>
+
+              <!-- Card Body: Team Info & Leadership -->
+              <div class="p-6 pt-4 flex flex-col gap-5 flex-1 justify-between relative z-10">
+                
+                <!-- Team Name & Title -->
+                <div class="text-center flex flex-col items-center gap-1">
+                  <h3 class="text-xl font-black uppercase tracking-tight text-white group-hover:text-amber-300 transition-colors">
+                    {{ team.name }}
+                  </h3>
+                  <span class="text-[11px] font-extrabold uppercase tracking-widest opacity-85" [style.color]="team.primaryColor">
+                    IPL 2026 FRANCHISE
+                  </span>
+                </div>
+
+                <!-- Key Leadership Metadata -->
+                <div class="grid grid-cols-2 gap-2.5 bg-[#04060E]/85 backdrop-blur-sm rounded-2xl p-4 border border-slate-850 text-xs">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Captain</span>
+                    <span class="font-extrabold text-slate-200 text-xs truncate flex items-center gap-1" [style.color]="team.primaryColor">
+                      <span>👑</span>
+                      <span class="truncate">{{ team.captain }}</span>
+                    </span>
+                  </div>
+
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Head Coach</span>
+                    <span class="font-bold text-slate-300 text-xs truncate flex items-center gap-1">
+                      <span>📋</span>
+                      <span class="truncate">{{ team.headCoach }}</span>
+                    </span>
+                  </div>
+
+                  <div class="col-span-2 flex flex-col gap-1 border-t border-slate-800/80 pt-2.5 mt-0.5">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Home Stadium</span>
+                    <span class="text-[11px] font-semibold text-slate-400 truncate flex items-center gap-1">
+                      <span>🏟️</span>
+                      <span class="truncate">{{ team.homeGround }}</span>
+                    </span>
                   </div>
                 </div>
 
-                <div class="flex flex-col items-center">
-                  <h3 class="text-lg font-black tracking-tight uppercase leading-tight" [style.color]="team.primaryColor">
-                    {{ team.name }}
-                  </h3>
-                </div>
+                <!-- Footer Action Button -->
+                <button 
+                  class="w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all text-center flex items-center justify-center gap-2 shadow-lg group-hover:shadow-amber-500/20 group-hover:brightness-110 cursor-pointer"
+                  [style.background-color]="team.primaryColor"
+                  style="color: #050711;">
+                  <span>VIEW SQUAD</span>
+                  <span class="material-icons text-sm group-hover:translate-x-1.5 transition-transform">arrow_forward</span>
+                </button>
+
               </div>
 
-              <!-- Team Quick Stats Grid -->
-              <div class="flex flex-col gap-1.5 bg-[#06080D] rounded-xl p-3.5 border border-slate-850 text-xs text-center">
-                <div class="text-slate-400">
-                  Captain: <strong [style.color]="team.primaryColor">{{ team.captain }}</strong>
-                </div>
-                <div class="text-slate-400">
-                  Coach: <strong [style.color]="team.primaryColor">{{ team.headCoach }}</strong>
-                </div>
-              </div>
-
-              <!-- Card Action Button -->
-              <button 
-                class="w-full py-2.5 rounded-xl border-2 text-xs font-black uppercase tracking-wider transition-all text-center group-hover:bg-slate-900"
-                [style.border-color]="team.primaryColor"
-                [style.color]="team.primaryColor">
-                VIEW SQUAD
-              </button>
             </div>
           </div>
         </section>
 
-        <!-- VIEW B: SELECTED FRANCHISE DETAILS & SQUAD (Dynamic Franchise Brand Color Matching Image) -->
+        <!-- VIEW B: SELECTED FRANCHISE DETAILS & SQUAD -->
         <section *ngIf="!showAllGrid() && currentTeam()" class="flex flex-col gap-8 animate-fadeIn">
           
           <!-- Franchise Header Banner -->
@@ -120,24 +223,22 @@ import { ApiService } from '../../core/services/api.service';
             <!-- Left: Franchise Identity -->
             <div class="flex items-center gap-6 z-10">
               <div 
-                class="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-[#06080D] border-2 flex items-center justify-center p-3 shadow-2xl"
+                class="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-[#06080D] border-2 flex items-center justify-center p-2 shadow-2xl overflow-hidden"
                 [style.border-color]="currentTeam()!.primaryColor">
-                <div class="font-black text-2xl md:text-3xl tracking-tighter" [style.color]="currentTeam()!.primaryColor">
-                  {{ currentTeam()!.code }}
-                </div>
+                <img [src]="currentTeam()!.logo" [alt]="currentTeam()!.name" class="w-full h-full object-cover rounded-xl drop-shadow-md" />
               </div>
 
               <div class="flex flex-col">
                 <span class="text-xs font-bold tracking-widest uppercase opacity-80" [style.color]="currentTeam()!.primaryColor">
                   IPL 2026 FRANCHISE
                 </span>
-                <h2 class="text-3xl md:text-5xl font-black uppercase tracking-tight mt-1 leading-none" [style.color]="currentTeam()!.primaryColor">
+                <h2 class="text-3xl md:text-5xl font-black uppercase tracking-tight mt-1 leading-none text-white">
                   {{ currentTeam()!.name }}
                 </h2>
               </div>
             </div>
 
-            <!-- Right: 3 Key Metadata Info Cards (Bordered in Franchise Primary Color) -->
+            <!-- Right: 3 Key Metadata Info Cards -->
             <div class="w-full md:w-auto grid grid-cols-1 sm:grid-cols-3 gap-4 z-10">
               
               <!-- Card 1: Captain -->
@@ -176,7 +277,7 @@ import { ApiService } from '../../core/services/api.service';
             </div>
           </div>
 
-          <!-- Squad Categorized in 3 Distinct Columns (Bordered in Franchise Primary Color) -->
+          <!-- Squad Categorized in 3 Distinct Columns -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             
             <!-- Column 1: BATTERS & WKS -->
@@ -302,8 +403,21 @@ export class TeamsComponent implements OnInit {
 
   public franchises = IPL_FRANCHISES_DATA;
   public selectedTeamCode = signal<string>('CSK');
-  public showAllGrid = signal<boolean>(false);
+  public showAllGrid = signal<boolean>(true);
   public isLiveDbLoaded = signal<boolean>(false);
+  public searchQuery = signal<string>('');
+
+  public filteredFranchises = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    if (!q) return this.franchises;
+    return this.franchises.filter(f => 
+      f.name.toLowerCase().includes(q) ||
+      f.code.toLowerCase().includes(q) ||
+      f.captain.toLowerCase().includes(q) ||
+      f.headCoach.toLowerCase().includes(q) ||
+      f.homeGround.toLowerCase().includes(q)
+    );
+  });
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -316,6 +430,7 @@ export class TeamsComponent implements OnInit {
         }
       }
       this.selectedTeamCode.set('CSK');
+      this.showAllGrid.set(true);
     });
 
     this.fetchLiveDbPlayers();
@@ -400,13 +515,31 @@ export class TeamsComponent implements OnInit {
   public selectTeam(code: string): void {
     this.selectedTeamCode.set(code);
     this.showAllGrid.set(false);
+    this.router.navigate(['/teams', code]);
+  }
+
+  public showAllFranchises(): void {
+    this.showAllGrid.set(true);
+    this.router.navigate(['/teams']);
   }
 
   public toggleViewMode(): void {
-    this.showAllGrid.update(v => !v);
+    if (this.showAllGrid()) {
+      this.showAllGrid.set(false);
+      this.router.navigate(['/teams', this.selectedTeamCode()]);
+    } else {
+      this.showAllFranchises();
+    }
   }
 
   public navigateToHome(): void {
     this.router.navigate(['/']);
+  }
+
+  public onLogoError(event: Event, code: string): void {
+    const target = event.target as HTMLImageElement;
+    if (!target.src.includes('ipl-logo.webp')) {
+      target.src = 'ipl-logo.webp';
+    }
   }
 }
