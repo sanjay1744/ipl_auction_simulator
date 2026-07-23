@@ -16,9 +16,13 @@ namespace IplAuction.Api.Models
         public decimal Rating { get; set; } = 0.0m;
         public decimal BasePrice { get; set; } = 2000000.00m; // 20 Lakhs
         public string Category { get; set; } = string.Empty; // Capped, Uncapped
+        public int MatchesPlayed { get; set; } = 0;
         public int IplRuns { get; set; } = 0;
         public int IplWickets { get; set; } = 0;
         public decimal StrikeRate { get; set; } = 0.00m;
+        public decimal Average { get; set; } = 0.00m;
+        public int Fifties { get; set; } = 0;
+        public int Hundreds { get; set; } = 0;
         public decimal Economy { get; set; } = 0.00m;
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

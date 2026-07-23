@@ -1,41 +1,54 @@
 <div *ngIf="isHomePage()" class="min-h-screen glow-mesh text-slate-100 flex flex-col font-sans">
-  <!-- 1. Header Navigation -->
-  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-900/60 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center font-bold text-white shadow-lg shadow-rose-500/20">
-        IPL
-      </div>
-      <div>
-        <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-          IPL Auction Game
-        </h1>
-        <p class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Live Simulator</p>
+  <!-- Official TATA IPL Header Navigation -->
+  <header class="sticky top-0 z-50 bg-[#18358A] shadow-2xl border-b border-[#2445A8] px-6 py-3 flex items-center justify-between">
+    
+    <!-- Left: TATA IPL Logo -->
+    <div class="flex items-center gap-6 cursor-pointer" routerLink="/">
+      <div class="flex items-center gap-3">
+        <!-- Official TATA IPL Dark Logo Image -->
+        <img src="Mode=Dark,_Version=A.webp" alt="TATA IPL Logo" class="h-10 md:h-12 w-auto object-contain drop-shadow-md" />
+
+        <span class="hidden lg:inline text-xs font-black tracking-widest text-amber-400 uppercase bg-blue-950/60 px-2.5 py-1 rounded-full border border-amber-400/30">
+          2026 AUCTION
+        </span>
       </div>
     </div>
 
-    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-      <a href="#" class="hover:text-amber-500 transition-colors text-slate-200">Dashboard</a>
-      <a href="#public-rooms" class="hover:text-amber-500 transition-colors">Public Rooms</a>
-      <a href="#player-pool" class="hover:text-amber-500 transition-colors">Master Players</a>
+    <!-- Center Navigation Links (Official TATA IPL Style with Active Underline) -->
+    <nav class="hidden md:flex items-center gap-8 text-sm font-bold text-white">
+      <a routerLink="/" class="hover:text-amber-300 transition-colors py-1.5 border-b-2 border-white text-white font-extrabold tracking-wide">
+        Home
+      </a>
+      <a routerLink="/teams" class="hover:text-amber-300 transition-colors py-1.5 text-slate-100 hover:border-b-2 hover:border-amber-300 tracking-wide flex items-center gap-1">
+        <span>Teams</span>
+      </a>
+      <a href="#public-rooms" class="hover:text-amber-300 transition-colors py-1.5 text-slate-100 hover:border-b-2 hover:border-amber-300 tracking-wide">
+        Public Rooms
+      </a>
+      <a href="#player-pool" class="hover:text-amber-300 transition-colors py-1.5 text-slate-100 hover:border-b-2 hover:border-amber-300 tracking-wide">
+        Master Players
+      </a>
     </nav>
 
-    <div class="flex items-center gap-4">
-      <button (click)="openCreateRoomModal()" class="px-4 py-2 text-xs font-semibold text-slate-900 bg-amber-400 rounded-lg hover:bg-amber-300 transition-all shadow-md shadow-amber-400/10">
-        Host Auction
+    <!-- Right: Host Auction & Auth Actions -->
+    <div class="flex items-center gap-3">
+      <button (click)="openCreateRoomModal()" class="px-4 py-2 text-xs font-black text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 rounded-lg hover:brightness-110 transition-all shadow-lg shadow-amber-400/20 uppercase tracking-wider flex items-center gap-1.5">
+        <span class="material-icons text-sm">gavel</span>
+        <span>Host Auction</span>
       </button>
 
       <!-- Account Auth State -->
       <div *ngIf="apiService.currentUser()" class="flex items-center gap-3">
         <div class="flex flex-col items-end">
-          <span class="text-xs font-bold text-slate-200">{{ apiService.currentUser()?.name }}</span>
-          <button (click)="logout()" class="text-[10px] text-rose-400 hover:underline">Sign Out</button>
+          <span class="text-xs font-bold text-white">{{ apiService.currentUser()?.name }}</span>
+          <button (click)="logout()" class="text-[10px] text-amber-300 hover:underline">Sign Out</button>
         </div>
-        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-amber-500 border border-slate-700 flex items-center justify-center font-bold text-xs text-white">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-amber-600 border border-white/40 flex items-center justify-center font-bold text-xs text-slate-950 shadow">
           {{ apiService.currentUser()?.name?.charAt(0) }}
         </div>
       </div>
 
-      <button *ngIf="!apiService.currentUser()" (click)="navigateToAuth()" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 transition-colors">
+      <button *ngIf="!apiService.currentUser()" (click)="navigateToAuth()" class="px-4 py-2 text-xs font-extrabold text-white bg-blue-900/80 hover:bg-blue-900 border border-blue-400/40 rounded-lg transition-colors">
         Sign In
       </button>
     </div>
@@ -203,22 +216,34 @@
           </div>
 
           <!-- Stats Block -->
-          <div class="grid grid-cols-2 gap-2 bg-slate-950/30 rounded-xl p-3 border border-slate-900">
-            <div *ngIf="player.role === 'Batsman' || player.role === 'WicketKeeper' || player.role === 'AllRounder'" class="flex flex-col">
+          <div class="grid grid-cols-3 gap-2 bg-slate-950/30 rounded-xl p-3 border border-slate-900">
+            <div class="flex flex-col">
+              <span class="text-[10px] uppercase text-slate-500 font-bold">Matches</span>
+              <span class="text-sm font-semibold text-slate-200">{{ player.matchesPlayed || '0' }}</span>
+            </div>
+            <div class="flex flex-col">
               <span class="text-[10px] uppercase text-slate-500 font-bold">IPL Runs</span>
               <span class="text-sm font-semibold text-slate-200">{{ player.iplRuns || '0' }}</span>
             </div>
-            <div *ngIf="player.role === 'Batsman' || player.role === 'WicketKeeper' || player.role === 'AllRounder'" class="flex flex-col">
+            <div class="flex flex-col">
+              <span class="text-[10px] uppercase text-slate-500 font-bold">Wickets</span>
+              <span class="text-sm font-semibold text-slate-200">{{ player.iplWickets || '0' }}</span>
+            </div>
+            <div class="flex flex-col">
               <span class="text-[10px] uppercase text-slate-500 font-bold">Strike Rate</span>
               <span class="text-sm font-semibold text-slate-200">{{ player.strikeRate || '0.0' }}</span>
             </div>
-            <div *ngIf="player.role === 'Bowler'" class="flex flex-col">
-              <span class="text-[10px] uppercase text-slate-500 font-bold">IPL Wickets</span>
-              <span class="text-sm font-semibold text-slate-200">{{ player.iplWickets || '0' }}</span>
+            <div class="flex flex-col">
+              <span class="text-[10px] uppercase text-slate-500 font-bold">Average</span>
+              <span class="text-sm font-semibold text-slate-200">{{ player.average || '0.0' }}</span>
             </div>
-            <div *ngIf="player.role === 'Bowler'" class="flex flex-col">
+            <div class="flex flex-col">
               <span class="text-[10px] uppercase text-slate-500 font-bold">Economy</span>
               <span class="text-sm font-semibold text-slate-200">{{ player.economy || '0.0' }}</span>
+            </div>
+            <div *ngIf="player.fifties || player.hundreds" class="flex flex-col col-span-3 border-t border-slate-900/60 pt-1 mt-1">
+              <span class="text-[10px] uppercase text-slate-500 font-bold">50s / 100s</span>
+              <span class="text-xs font-semibold text-amber-400/90">{{ player.fifties || 0 }} 🏑 / {{ player.hundreds || 0 }} 💯</span>
             </div>
           </div>
 

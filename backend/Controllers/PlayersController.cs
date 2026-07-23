@@ -22,7 +22,7 @@ namespace IplAuction.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Player>>> GetPlayers()
         {
-            var players = await _context.Players.ToListAsync();
+            var players = await _context.Players.AsNoTracking().ToListAsync();
             return Ok(players);
         }
 

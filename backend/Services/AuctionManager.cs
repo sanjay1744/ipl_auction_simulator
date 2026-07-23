@@ -308,9 +308,13 @@ namespace IplAuction.Api.Services
                     player.Rating,
                     player.BasePrice,
                     player.Category,
+                    player.MatchesPlayed,
                     player.IplRuns,
                     player.IplWickets,
                     player.StrikeRate,
+                    player.Average,
+                    player.Fifties,
+                    player.Hundreds,
                     player.Economy,
                     player.Description
                 },

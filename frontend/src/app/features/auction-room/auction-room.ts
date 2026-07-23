@@ -151,6 +151,10 @@ import { SignalRService } from '../../core/services/signalr.service';
                   <span class="text-sm font-bold text-amber-400">⭐ {{ activePlayer().rating }}</span>
                 </div>
                 <div>
+                  <span class="text-[10px] text-slate-500 uppercase font-bold block">Matches</span>
+                  <span class="text-sm font-bold text-slate-200">{{ activePlayer().matchesPlayed || '0' }}</span>
+                </div>
+                <div>
                   <span class="text-[10px] text-slate-500 uppercase font-bold block">IPL Runs</span>
                   <span class="text-sm font-bold text-slate-200">{{ activePlayer().iplRuns || '0' }}</span>
                 </div>
@@ -161,6 +165,14 @@ import { SignalRService } from '../../core/services/signalr.service';
                 <div>
                   <span class="text-[10px] text-slate-500 uppercase font-bold block">Strike Rate</span>
                   <span class="text-sm font-bold text-slate-200">{{ activePlayer().strikeRate || '0.0' }}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-500 uppercase font-bold block">Average</span>
+                  <span class="text-sm font-bold text-slate-200">{{ activePlayer().average || '0.0' }}</span>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-500 uppercase font-bold block">Economy</span>
+                  <span class="text-sm font-bold text-slate-200">{{ activePlayer().economy || '0.0' }}</span>
                 </div>
               </div>
 

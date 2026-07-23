@@ -2,35 +2,21 @@ import os
 import openpyxl
 import psycopg2
 
-EXCEL_PATH = r"IPL_2026_All_Players_Master.xlsx"
-SQL_OUTPUT_PATH = os.path.join("db", "seed_players.sql")
+EXCEL_PATH = os.path.join("db", "players.xlsx")
 DATA_CONTEXT_PATH = os.path.join("backend", "Data", "DataContext.cs")
-
-def generate_player_uuid(player_id):
-    return f"00000000-0000-0000-0000-{int(player_id):012d}"
 
 def map_role(excel_role):
     role_map = {
         "Batter": "Batsman",
+        "Batsman": "Batsman",
         "Bowler": "Bowler",
         "All-Rounder": "AllRounder",
-        "Wicketkeeper-Batter": "WicketKeeper"
+        "AllRounder": "AllRounder",
+        "Wicketkeeper Batter": "WicketKeeper",
+        "Wicketkeeper-Batter": "WicketKeeper",
+        "WicketKeeper": "WicketKeeper"
     }
     return role_map.get(excel_role, excel_role)
-
-def calculate_rating(base_price_cr, acquisition_type, is_captain):
-    rating = 7.5
-    if acquisition_type == "Retained" or base_price_cr >= 2.0:
-        rating = 9.0
-    elif base_price_cr >= 1.0:
-        rating = 8.5
-    elif base_price_cr >= 0.5:
-        rating = 8.0
-    
-    if is_captain == "Yes":
-        rating += 0.4
-        
-    return min(9.8, round(rating, 1))
 
 def load_players_from_excel():
     wb = openpyxl.load_workbook(EXCEL_PATH)
@@ -38,94 +24,42 @@ def load_players_from_excel():
     headers = [cell.value for cell in sheet[1]]
     
     players = []
-    for row_idx in range(2, sheet.max_row + 1):
-        row = {headers[c]: sheet.cell(row_idx, c + 1).value for c in range(len(headers))}
+    for r in range(2, sheet.max_row + 1):
+        row = {headers[c]: sheet.cell(r, c + 1).value for c in range(len(headers))}
         
-        p_id = row['Player ID']
-        uuid_str = generate_player_uuid(p_id)
-        name = str(row['Player Name']).strip()
-        team = str(row['Team']).strip()
-        raw_role = str(row['Role']).strip()
-        role = map_role(raw_role)
-        batting_style = str(row['Batting Style']).strip()
-        bowling_style = str(row['Bowling Style']).strip()
-        country = str(row['Nationality']).strip()
-        is_overseas = str(row['Overseas']).strip()
-        is_wk = str(row['Wicket Keeper']).strip()
-        is_captain = str(row['Captain']).strip()
-        jersey_no = row['Jersey No']
-        age = int(row['Age']) if row['Age'] is not None else 25
-        acq_type = str(row['Acquisition Type']).strip()
-        base_price_cr = float(row['Base Price'])
-        base_price_rs = int(round(base_price_cr * 10000000))
-        image_url = str(row['Image URL']).strip()
+        raw_rating = float(row['rating']) if row['rating'] is not None else 0.0
+        rating = round(raw_rating / 10.0, 1) if raw_rating > 10.0 else round(raw_rating, 1)
+        base_price = float(row['base_price']) if row['base_price'] is not None else 20000000.0
         
-        category = "Capped" if (base_price_cr >= 0.5 or acq_type == "Retained") else "Uncapped"
-        rating = calculate_rating(base_price_cr, acq_type, is_captain)
-        
-        desc = f"IPL 2026 {team} player ({role}). Acquisition: {acq_type}. Base Price: ₹{base_price_cr} Cr."
-        if is_captain == "Yes":
-            desc += " Team Captain."
-            
-        players.append({
-            "id": uuid_str,
-            "numeric_id": p_id,
-            "name": name,
-            "image_url": image_url,
-            "country": country,
-            "role": role,
-            "batting_style": batting_style,
-            "bowling_style": bowling_style,
-            "age": age,
+        p = {
+            "id": str(row['id']).strip(),
+            "name": str(row['name']).strip(),
+            "image_url": str(row['image_url']).strip() if row['image_url'] else "",
+            "country": str(row['country']).strip() if row['country'] else "India",
+            "role": map_role(str(row['role']).strip()),
+            "batting_style": str(row['batting_style']).strip() if row['batting_style'] else "",
+            "bowling_style": str(row['bowling_style']).strip() if row['bowling_style'] else "",
+            "age": int(row['age']) if row['age'] is not None else 25,
             "rating": rating,
-            "base_price": base_price_rs,
-            "base_price_cr": base_price_cr,
-            "category": category,
-            "ipl_runs": 0,
-            "ipl_wickets": 0,
-            "strike_rate": 0.00,
-            "economy": 0.00,
-            "description": desc
-        })
+            "base_price": base_price,
+            "category": str(row['category']).strip() if row['category'] else "Capped",
+            "matches_played": int(row['matches played']) if row['matches played'] is not None else 0,
+            "ipl_runs": int(row['ipl_runs']) if row['ipl_runs'] is not None else 0,
+            "ipl_wickets": int(row['ipl_wickets']) if row['ipl_wickets'] is not None else 0,
+            "strike_rate": float(row['strike_rate']) if row['strike_rate'] is not None else 0.0,
+            "average": float(row['average']) if row['average'] is not None else 0.0,
+            "fifties": int(row['50s']) if row['50s'] is not None else 0,
+            "hundreds": int(row['100s']) if row['100s'] is not None else 0,
+            "economy": float(row['economy']) if row['economy'] is not None else 0.0,
+            "description": str(row['description']).strip() if row['description'] else ""
+        }
+        players.append(p)
     return players
-
-def generate_sql(players):
-    sql_lines = [
-        "-- Seed 2026 TATA IPL Players Master Data from IPL_2026_All_Players_Master.xlsx",
-        "TRUNCATE TABLE players CASCADE;",
-        "",
-        "INSERT INTO players (id, name, image_url, country, role, batting_style, bowling_style, age, rating, base_price, category, ipl_runs, ipl_wickets, strike_rate, economy, description, created_at)",
-        "VALUES"
-    ]
-    
-    value_lines = []
-    for p in players:
-        esc_name = p['name'].replace("'", "''")
-        esc_desc = p['description'].replace("'", "''")
-        esc_bat = p['batting_style'].replace("'", "''")
-        esc_bowl = p['bowling_style'].replace("'", "''")
-        esc_country = p['country'].replace("'", "''")
-        esc_img = p['image_url'].replace("'", "''")
-        
-        val = (
-            f"    ('{p['id']}', '{esc_name}', '{esc_img}', '{esc_country}', '{p['role']}', "
-            f"'{esc_bat}', '{esc_bowl}', {p['age']}, {p['rating']}, {p['base_price']:.2f}, "
-            f"'{p['category']}', {p['ipl_runs']}, {p['ipl_wickets']}, {p['strike_rate']:.2f}, "
-            f"{p['economy']:.2f}, '{esc_desc}', CURRENT_TIMESTAMP)"
-        )
-        value_lines.append(val)
-        
-    sql_lines.append(",\n".join(value_lines) + ";\n")
-    
-    with open(SQL_OUTPUT_PATH, "w", encoding="utf-8") as f:
-        f.write("\n".join(sql_lines))
-    print(f"Generated {SQL_OUTPUT_PATH} with {len(players)} players.")
 
 def update_datacontext_cs(players):
     with open(DATA_CONTEXT_PATH, "r", encoding="utf-8") as f:
         content = f.read()
         
-    # Build C# seed string
     csharp_seed_lines = []
     for p in players:
         esc_name = p['name'].replace('"', '\\"')
@@ -136,12 +70,11 @@ def update_datacontext_cs(players):
         esc_img = p['image_url'].replace('"', '\\"')
         
         csharp_seed_lines.append(
-            f'                    new Player {{ Id = Guid.Parse("{p["id"]}"), Name = "{esc_name}", ImageUrl = "{esc_img}", Country = "{esc_country}", Role = "{p["role"]}", BattingStyle = "{esc_bat}", BowlingStyle = "{esc_bowl}", Age = {p["age"]}, Rating = {p["rating"]}m, BasePrice = {p["base_price"]}m, Category = "{p["category"]}", IplRuns = {p["ipl_runs"]}, IplWickets = {p["ipl_wickets"]}, StrikeRate = {p["strike_rate"]}m, Economy = {p["economy"]}m, Description = "{esc_desc}" }}'
+            f'                    new Player {{ Id = Guid.Parse("{p["id"]}"), Name = "{esc_name}", ImageUrl = "{esc_img}", Country = "{esc_country}", Role = "{p["role"]}", BattingStyle = "{esc_bat}", BowlingStyle = "{esc_bowl}", Age = {p["age"]}, Rating = {p["rating"]}m, BasePrice = {p["base_price"]:.2f}m, Category = "{p["category"]}", MatchesPlayed = {p["matches_played"]}, IplRuns = {p["ipl_runs"]}, IplWickets = {p["ipl_wickets"]}, StrikeRate = {p["strike_rate"]}m, Average = {p["average"]}m, Fifties = {p["fifties"]}, Hundreds = {p["hundreds"]}, Economy = {p["economy"]}m, Description = "{esc_desc}" }}'
         )
         
     csharp_hasdata = "entity.HasData(\n" + ",\n".join(csharp_seed_lines) + "\n                );"
     
-    # Locate entity.HasData(...) in DataContext.cs
     start_tag = "entity.HasData("
     end_tag = ");"
     
@@ -150,7 +83,6 @@ def update_datacontext_cs(players):
         print("Could not find entity.HasData in DataContext.cs")
         return
         
-    # Find matching closing ); for entity.HasData
     end_idx = content.find(end_tag, start_idx)
     if end_idx == -1:
         print("Could not find closing ); for entity.HasData in DataContext.cs")
@@ -170,22 +102,54 @@ def execute_neon_db_update(players):
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
-    # Truncate existing players table
-    cur.execute("TRUNCATE TABLE players CASCADE;")
-    print("Truncated existing players table in Neon PostgreSQL.")
+    # Drop and recreate players table with exact column order
+    cur.execute("DROP TABLE IF EXISTS players CASCADE;")
+    cur.execute("""
+    CREATE TABLE players (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(100) NOT NULL,
+        image_url VARCHAR(255),
+        country VARCHAR(100) NOT NULL DEFAULT 'India',
+        role VARCHAR(50) NOT NULL,
+        batting_style VARCHAR(50),
+        bowling_style VARCHAR(50),
+        age INT,
+        rating DECIMAL(3, 1) NOT NULL DEFAULT 0.0,
+        base_price DECIMAL(15, 2) NOT NULL DEFAULT 2000000.00,
+        category VARCHAR(50) NOT NULL,
+        matches_played INT DEFAULT 0,
+        ipl_runs INT DEFAULT 0,
+        ipl_wickets INT DEFAULT 0,
+        strike_rate DECIMAL(5, 2) DEFAULT 0.0,
+        average DECIMAL(5, 2) DEFAULT 0.0,
+        fifties INT DEFAULT 0,
+        hundreds INT DEFAULT 0,
+        economy DECIMAL(4, 2) DEFAULT 0.0,
+        description TEXT,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_players_role ON players(role);
+    CREATE INDEX IF NOT EXISTS idx_players_country ON players(country);
     
-    # Execute SQL insert for all 244 players
+    ALTER TABLE rooms ADD CONSTRAINT fk_rooms_current_player FOREIGN KEY (current_player_id) REFERENCES players(id) ON DELETE SET NULL;
+    ALTER TABLE bids ADD CONSTRAINT fk_bids_player FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE;
+    ALTER TABLE purchases ADD CONSTRAINT fk_purchases_player FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE;
+    """)
+    conn.commit()
+    print("Recreated players table in Neon PostgreSQL with updated columns.")
+    
     insert_sql = """
-    INSERT INTO players (id, name, image_url, country, role, batting_style, bowling_style, age, rating, base_price, category, ipl_runs, ipl_wickets, strike_rate, economy, description, created_at)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
+    INSERT INTO players (id, name, image_url, country, role, batting_style, bowling_style, age, rating, base_price, category, matches_played, ipl_runs, ipl_wickets, strike_rate, average, fifties, hundreds, economy, description, created_at)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP);
     """
     
     rows_to_insert = [
         (
             p['id'], p['name'], p['image_url'], p['country'], p['role'],
             p['batting_style'], p['bowling_style'], p['age'], p['rating'],
-            p['base_price'], p['category'], p['ipl_runs'], p['ipl_wickets'],
-            p['strike_rate'], p['economy'], p['description']
+            p['base_price'], p['category'], p['matches_played'], p['ipl_runs'],
+            p['ipl_wickets'], p['strike_rate'], p['average'], p['fifties'],
+            p['hundreds'], p['economy'], p['description']
         )
         for p in players
     ]
@@ -205,6 +169,5 @@ if __name__ == "__main__":
     players = load_players_from_excel()
     print(f"Loaded {len(players)} players from {EXCEL_PATH}.")
     
-    generate_sql(players)
     update_datacontext_cs(players)
     execute_neon_db_update(players)

@@ -76,9 +76,13 @@ CREATE TABLE players (
     rating DECIMAL(3, 1) NOT NULL DEFAULT 0.0,
     base_price DECIMAL(15, 2) NOT NULL DEFAULT 2000000.00, -- 20 Lakhs
     category VARCHAR(50) NOT NULL, -- Capped, Uncapped
+    matches_played INT DEFAULT 0,
     ipl_runs INT DEFAULT 0,
     ipl_wickets INT DEFAULT 0,
     strike_rate DECIMAL(5, 2) DEFAULT 0.0,
+    average DECIMAL(5, 2) DEFAULT 0.0,
+    fifties INT DEFAULT 0,
+    hundreds INT DEFAULT 0,
     economy DECIMAL(4, 2) DEFAULT 0.0,
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
