@@ -29,6 +29,7 @@ export class SignalRService {
 
   public isConnected = signal(false);
   public connectionError = signal<string | null>(null);
+  private currentRoomCode = '';
 
   // Real-time Auction State Signals
   public timerSeconds = signal<number>(30);
@@ -41,7 +42,16 @@ export class SignalRService {
   public lastSaleNotification = signal<any | null>(null);
 
   public startConnection(roomCode: string, token: string): void {
-    if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
+    if (this.currentRoomCode !== roomCode) {
+      this.stopConnection();
+      this.participants.set([]);
+      this.chatMessages.set([]);
+      this.logs.set([]);
+      this.activePlayer.set(null);
+      this.latestBid.set(null);
+      this.auctionStatus.set('Lobby');
+      this.currentRoomCode = roomCode;
+    } else if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
       return;
     }
 

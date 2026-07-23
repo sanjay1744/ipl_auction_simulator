@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using IplAuction.Api.Data;
 using IplAuction.Api.Models;
+using IplAuction.Api.Hubs;
 
 namespace IplAuction.Api.Controllers
 {
@@ -13,10 +15,12 @@ namespace IplAuction.Api.Controllers
     public class RoomsController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly IHubContext<AuctionHub> _hubContext;
 
-        public RoomsController(DataContext context)
+        public RoomsController(DataContext context, IHubContext<AuctionHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         private Guid GetUserId()
@@ -271,6 +275,32 @@ namespace IplAuction.Api.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // Broadcast real-time participants & team updates to all room members via SignalR
+            var updatedRoom = await _context.Rooms
+                .Include(r => r.Participants).ThenInclude(p => p.User)
+                .Include(r => r.Teams)
+                .FirstOrDefaultAsync(r => r.Id == room.Id);
+
+            if (updatedRoom != null)
+            {
+                var participantsPayload = updatedRoom.Participants.Select(p => {
+                    var userTeam = updatedRoom.Teams.FirstOrDefault(t => t.OwnerId == p.UserId);
+                    return new
+                    {
+                        p.Id,
+                        p.UserId,
+                        UserName = p.User?.Name ?? "",
+                        UserAvatar = p.User?.Avatar,
+                        p.Role,
+                        p.IsReady,
+                        p.IsConnected,
+                        TeamName = userTeam?.TeamName
+                    };
+                });
+
+                await _hubContext.Clients.Group(room.RoomCode.ToUpper()).SendAsync("ParticipantsUpdated", participantsPayload);
+            }
 
             return Ok(new
             {

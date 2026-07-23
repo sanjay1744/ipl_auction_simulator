@@ -49,12 +49,27 @@ namespace IplAuction.Api.Hubs
                 if (room != null && userId != Guid.Empty)
                 {
                     var participant = room.Participants.FirstOrDefault(p => p.UserId == userId);
-                    if (participant != null)
+                    if (participant == null)
+                    {
+                        participant = new RoomParticipant
+                        {
+                            Id = Guid.NewGuid(),
+                            RoomId = room.Id,
+                            UserId = userId,
+                            Role = room.HostId == userId ? "Host" : "Player",
+                            IsReady = false,
+                            IsConnected = true,
+                            ConnectionId = Context.ConnectionId,
+                            JoinedAt = DateTime.UtcNow
+                        };
+                        _context.RoomParticipants.Add(participant);
+                    }
+                    else
                     {
                         participant.IsConnected = true;
                         participant.ConnectionId = Context.ConnectionId;
-                        await _context.SaveChangesAsync();
                     }
+                    await _context.SaveChangesAsync();
 
                     await BroadcastParticipantsUpdate(roomCode);
                 }
@@ -177,19 +192,24 @@ namespace IplAuction.Api.Hubs
         {
             var room = await _context.Rooms
                 .Include(r => r.Participants).ThenInclude(p => p.User)
+                .Include(r => r.Teams)
                 .FirstOrDefaultAsync(r => r.RoomCode.ToUpper() == roomCode.Trim().ToUpper());
 
             if (room != null)
             {
-                var participants = room.Participants.Select(p => new
-                {
-                    p.Id,
-                    p.UserId,
-                    UserName = p.User.Name,
-                    UserAvatar = p.User.Avatar,
-                    p.Role,
-                    p.IsReady,
-                    p.IsConnected
+                var participants = room.Participants.Select(p => {
+                    var userTeam = room.Teams.FirstOrDefault(t => t.OwnerId == p.UserId);
+                    return new
+                    {
+                        p.Id,
+                        p.UserId,
+                        UserName = p.User?.Name ?? "",
+                        UserAvatar = p.User?.Avatar,
+                        p.Role,
+                        p.IsReady,
+                        p.IsConnected,
+                        TeamName = userTeam?.TeamName
+                    };
                 });
 
                 await Clients.Group(roomCode.ToUpper()).SendAsync("ParticipantsUpdated", participants);
