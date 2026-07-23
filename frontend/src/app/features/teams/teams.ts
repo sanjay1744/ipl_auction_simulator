@@ -29,6 +29,9 @@ import { ApiService } from '../../core/services/api.service';
             <a (click)="showAllFranchises()" [class]="showAllGrid() ? 'text-white border-b-2 border-white font-extrabold' : 'text-slate-100 hover:text-amber-300 hover:border-b-2 hover:border-amber-300'" class="transition-colors py-1.5 tracking-wide cursor-pointer flex items-center gap-1">
               <span>Teams</span>
             </a>
+            <a (click)="navigateToPlayers()" class="hover:text-amber-300 transition-colors py-1.5 text-slate-100 tracking-wide cursor-pointer flex items-center gap-1">
+              <span>Players</span>
+            </a>
           </nav>
         </div>
 
@@ -534,6 +537,10 @@ export class TeamsComponent implements OnInit {
 
   public navigateToHome(): void {
     this.router.navigate(['/']);
+  }
+
+  public navigateToPlayers(): void {
+    this.router.navigate(['/players']);
   }
 
   public onLogoError(event: Event, code: string): void {
